@@ -1,0 +1,14 @@
+*.pyc
+*.index
+*.pkl
+*.db
+
+__pycache__/
+trt_engine_cache/
+insightface_models/
+env/
+venv/
+.DS_Store
+.idea/
+.vscode/
+.env
