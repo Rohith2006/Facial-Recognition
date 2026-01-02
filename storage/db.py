@@ -3,6 +3,9 @@ import sqlite3
 from typing import Dict, Optional
 from PIL import Image
 import os
+from utils.logger import get_logger
+
+logger = get_logger()
 
 class ImageDB:
     def __init__(self, db_path: str = "storage/images.db"):
@@ -40,12 +43,11 @@ class ImageDB:
                 INSERT OR REPLACE INTO images (face_id, name, data)
                 VALUES (?, ?, ?)
             """, (face_id, name, img_bytes))
-        print(f"Image stored in DB with face_id: {face_id}")
+        logger.info(f"Image stored in DB with face_id: {face_id}")
 
     def retrieve_by_face_id(self, face_id) -> Optional[Dict]:
         face_id = str(face_id)
-        print(f"Attempting to retrieve face_id: {face_id}")
-
+        logger.info(f"Attempting to retrieve face_id: {face_id}")
         cur = self.conn.execute(
             "SELECT data, name FROM images WHERE face_id=?",
             (face_id,)
@@ -53,11 +55,11 @@ class ImageDB:
         row = cur.fetchone()
 
         if not row:
-            print(f"No image found for face_id: {face_id}")
+            logger.info(f"No image found for face_id: {face_id}")
             return None
 
         img_bytes, name = row
-        print(
+        logger.info(
             f"Image found for face_id: {face_id}, "
             f"data size: {len(img_bytes)} bytes, "
             f"name: {name}"
@@ -68,24 +70,23 @@ class ImageDB:
     
     def save_image_to_path(self, face_id, output_path: str):
         face_id = str(face_id)
-        print(f"Saving image for face_id: {face_id} to {output_path}")
+        logger.info(f"Saving image for face_id: {face_id} to {output_path}")
         image = self.retrieve_by_face_id(face_id)
         if image is not None:  # Explicit None check instead of falsy check
             try:
                 image.save(output_path)
-                print(f"Image successfully saved to {output_path}")
+                logger.info(f"Image successfully saved to {output_path}")
             except Exception as e:
-                print(f"Error saving image to {output_path}: {e}")
+                logger.error(f"Error saving image to {output_path}: {e}")
         else:
-            print(f"No image retrieved for face_id: {face_id}, cannot save")
-
+            logger.info(f"No image retrieved for face_id: {face_id}, cannot save")
     def get_unnamed_faces(self):
         cur = self.conn.execute(
             "SELECT id, face_id, name FROM images WHERE name IS NULL OR name = ''"
         )
         rows = cur.fetchall()
         unnamed_faces = [{"face_id": row[1], "name": row[2]} for row in rows]
-        print(f"Retrieved {len(unnamed_faces)} unnamed faces")
+        logger.info(f"Retrieved {len(unnamed_faces)} unnamed faces")
         return unnamed_faces
     
     def get_image_by_face_id(self, face_id) -> Optional[Image.Image]:
@@ -97,12 +98,12 @@ class ImageDB:
         row = cur.fetchone()
 
         if not row:
-            print(f"No image found for face_id: {face_id}")
+            logger.info(f"No image found for face_id: {face_id}")
             return None
 
         img_bytes = row[0]
         image = Image.open(BytesIO(img_bytes))
-        print(f"Image retrieved for face_id: {face_id}")
+        logger.info(f"Image retrieved for face_id: {face_id}")
         return image
     
     def update_name(self, face_id, name: str):
@@ -112,7 +113,7 @@ class ImageDB:
                 "UPDATE images SET name=? WHERE face_id=?",
                 (name, face_id)
             )
-        print(f"Updated name for face_id: {face_id} to {name}")
+        logger.info(f"Updated name for face_id: {face_id} to {name}")
 
     def close(self):
         self.conn.close()

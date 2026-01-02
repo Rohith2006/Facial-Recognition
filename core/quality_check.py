@@ -2,7 +2,6 @@ import numpy as np
 from insightface.app import FaceAnalysis
 from PIL import Image
 
-
 class QualityCheck:
     def __init__(self):
         self.app = FaceAnalysis(
@@ -24,7 +23,7 @@ class QualityCheck:
     # ----------------------------
     # Face size check
     # ----------------------------
-    def min_face_size(self, image: Image.Image, min_size: int = 160) -> bool:
+    def min_face_size(self, image: Image.Image, min_size: int = 120) -> bool:
         face = self._get_largest_face(image)
         if face is None:
             return False
@@ -35,9 +34,9 @@ class QualityCheck:
         return w >= min_size and h >= min_size
 
     # ----------------------------
-    # Frontal check (≈ ±20°)
+    # Frontal check (≈ ±50°)
     # ----------------------------
-    def is_frontal(self, image: Image.Image, angle_threshold: float = 20) -> bool:
+    def is_frontal(self, image: Image.Image, angle_threshold: float = 50) -> bool:
         face = self._get_largest_face(image)
         if face is None:
             return False

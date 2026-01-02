@@ -2,6 +2,9 @@ import faiss
 import numpy as np
 import os
 import pickle
+from utils.logger import get_logger
+
+logger = get_logger()
 
 class VectorStore:
     def __init__(self, dim: int, index_path: str = "vector_db/faiss.index", embeddings_path: str = "vector_db/embeddings.pkl"):
@@ -29,6 +32,7 @@ class VectorStore:
         self.index.add(np.expand_dims(embedding, axis=0))
         self.embeddings.append(embedding)
 
+        logger.info(f"Added new embedding. Total embeddings: {len(self.embeddings)}")
         # Save to disk immediately
         self.save()
         return len(self.embeddings) - 1  # Return index of embedding
@@ -39,6 +43,7 @@ class VectorStore:
         query_embedding = query_embedding / np.linalg.norm(query_embedding)
         D, I = self.index.search(np.expand_dims(query_embedding, axis=0), top_k)
         results = [(idx, score) for idx, score in zip(I[0], D[0]) if score >= threshold]
+        logger.info(f"Search results: {results}")
         return results
 
     def save(self):
@@ -46,3 +51,4 @@ class VectorStore:
         faiss.write_index(self.index, self.index_path)
         with open(self.embeddings_path, "wb") as f:
             pickle.dump(self.embeddings, f)
+            logger.info("VectorStore saved to disk.")
